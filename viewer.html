@@ -7,20 +7,22 @@
 </head>
 <body>
   <div class="container">
-    <h1>Submitted Messages</h1>
+    <h1>📥 Submitted Messages</h1>
     <ul id="messageList"></ul>
+    <p id="status"></p>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
     import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
 
+    // ✅ Correct Firebase config with valid databaseURL
     const firebaseConfig = {
       apiKey: "AIzaSyANC5GGhPk67G8kKbeBQv2T11A-5_bIXOs",
       authDomain: "xpensemgr-526a4.firebaseapp.com",
-      databaseURL: "https://console.firebase.google.com/u/0/project/xpensemgr-526a4/database/xpensemgr-526a4-default-rtdb/data/~2F",
+      databaseURL: "https://xpensemgr-526a4-default-rtdb.firebaseio.com", // ✅ Fixed
       projectId: "xpensemgr-526a4",
-      storageBucket: "xpensemgr-526a4.firebasestorage.app",
+      storageBucket: "xpensemgr-526a4.appspot.com",
       messagingSenderId: "274547126267",
       appId: "1:274547126267:web:1b68acc62d558e534ea55e"
     };
@@ -29,16 +31,26 @@
     const db = getDatabase(app);
 
     const messageList = document.getElementById("messageList");
+    const status = document.getElementById("status");
     const messagesRef = ref(db, "msgdrop/messages");
 
+    // ✅ Fetch and display messages
     onValue(messagesRef, (snapshot) => {
       messageList.innerHTML = "";
-      snapshot.forEach((child) => {
-        const msg = child.val().text;
-        const li = document.createElement("li");
-        li.textContent = msg;
-        messageList.appendChild(li);
-      });
+      if (snapshot.exists()) {
+        snapshot.forEach((child) => {
+          const msg = child.val().text;
+          const li = document.createElement("li");
+          li.textContent = msg;
+          messageList.appendChild(li);
+        });
+        status.textContent = `✅ Loaded ${snapshot.size} messages`;
+      } else {
+        status.textContent = "⚠️ No messages found.";
+      }
+    }, (error) => {
+      console.error("Error fetching messages:", error);
+      status.textContent = "❌ Failed to load messages.";
     });
   </script>
 </body>
